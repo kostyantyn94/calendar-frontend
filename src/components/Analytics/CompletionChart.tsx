@@ -110,14 +110,15 @@ export const CompletionChart: React.FC<CompletionChartProps> = ({ data }) => {
     const getChartData = () => {
         const isSmallScreen = window.innerWidth < 768;
         const isTinyScreen = window.innerWidth < 480;
-        const dataPoints = isTinyScreen ? 10 : isSmallScreen ? 14 : 30;
+        const dataPoints = isTinyScreen ? 7 : isSmallScreen ? 10 : 20; // Еще меньше точек
         
         return data.slice(-dataPoints).map(day => {
             const date = new Date(day.date);
             return {
                 ...day,
+                originalDate: day.date, // Сохраняем оригинальную дату
                 date: isTinyScreen 
-                    ? date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' }) // "12/25"
+                    ? `${date.getMonth() + 1}/${date.getDate()}` // "12/25"
                     : isSmallScreen 
                     ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) // "Dec 25"
                     : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) // "Dec 25"
@@ -138,6 +139,17 @@ export const CompletionChart: React.FC<CompletionChartProps> = ({ data }) => {
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
+            // Найдем оригинальную дату для полного отображения
+            const dataPoint = chartData.find(d => d.date === label);
+            const fullDate = dataPoint?.originalDate 
+                ? new Date(dataPoint.originalDate).toLocaleDateString('en-US', { 
+                    weekday: 'short',
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric'
+                })
+                : label;
+
             return (
                 <div style={{
                     background: theme.colors.background,
@@ -154,7 +166,7 @@ export const CompletionChart: React.FC<CompletionChartProps> = ({ data }) => {
                         color: theme.colors.text.primary,
                         fontSize: '12px'
                     }}>
-                        {label}
+                        {fullDate}
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         <p style={{ margin: 0, color: theme.colors.primary, display: 'flex', justifyContent: 'space-between' }}>
@@ -179,8 +191,9 @@ export const CompletionChart: React.FC<CompletionChartProps> = ({ data }) => {
     // Responsive chart configuration
     const getChartMargin = () => {
         const isSmallScreen = window.innerWidth < 768;
+        const isTinyScreen = window.innerWidth < 480;
         return isSmallScreen 
-            ? { top: 5, right: 10, left: 0, bottom: 25 }
+            ? { top: 5, right: 10, left: 0, bottom: isTinyScreen ? 35 : 30 }
             : { top: 5, right: 30, left: 20, bottom: 5 };
     };
 
@@ -189,7 +202,7 @@ export const CompletionChart: React.FC<CompletionChartProps> = ({ data }) => {
         const isTinyScreen = window.innerWidth < 480;
         return {
             fontSize: isTinyScreen ? 8 : isSmallScreen ? 9 : 12,
-            interval: isTinyScreen ? 2 : isSmallScreen ? 1 : 0, // Show fewer labels on smaller screens
+            interval: isTinyScreen ? 4 : isSmallScreen ? 2 : 1, // Show much fewer labels on smaller screens
             angle: isSmallScreen ? -45 : 0, // Rotate labels on mobile
         };
     };
@@ -218,10 +231,20 @@ export const CompletionChart: React.FC<CompletionChartProps> = ({ data }) => {
                             interval={getAxisConfig().interval}
                             angle={getAxisConfig().angle}
                             textAnchor={getAxisConfig().angle ? "end" : "middle"}
-                            tick={{ fontSize: getAxisConfig().fontSize }}
+                            tick={{ 
+                                fontSize: getAxisConfig().fontSize,
+                                fill: theme.colors.text.secondary
+                            }}
+                            tickFormatter={(value) => {
+                                // Дополнительное сокращение для очень маленьких экранов
+                                if (window.innerWidth < 480) {
+                                    return value.length > 5 ? value.substring(0, 5) : value;
+                                }
+                                return value;
+                            }}
                             axisLine={{ stroke: theme.colors.border }}
                             tickLine={{ stroke: theme.colors.border }}
-                            height={window.innerWidth < 768 ? 50 : 30}
+                            height={window.innerWidth < 768 ? 60 : 30}
                         />
                         <YAxis 
                             stroke={theme.colors.text.secondary}
