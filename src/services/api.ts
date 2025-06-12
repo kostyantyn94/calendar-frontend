@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Task, Holiday, AnalyticsData } from '../types';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://calender-backend-production-71cf.up.railway.app/api';
 const HOLIDAY_API_BASE_URL = 'https://date.nager.at/api/v3';
 
 // Create axios instance for our backend
