@@ -18,12 +18,12 @@ interface ThemeProviderProps {
 }
 
 const themeDisplayNames: Record<ThemeKeyWithAuto, string> = {
-    auto: 'Авто',
-    light: 'Светлая',
-    dark: 'Темная',
-    blue: 'Синяя',
-    green: 'Зеленая',
-    purple: 'Фиолетовая',
+    auto: 'Auto',
+    light: 'Light',
+    dark: 'Dark',
+    blue: 'Blue',
+    green: 'Green',
+    purple: 'Purple',
 };
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
