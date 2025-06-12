@@ -28,6 +28,16 @@ interface TrendsChartProps {
 
 export const TrendsChart: React.FC<TrendsChartProps> = ({ data }) => {
     const { theme } = useTheme();
+    const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
+
+    React.useEffect(() => {
+        const handleResize = () => {
+            setWindowWidth(window.innerWidth);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
@@ -54,6 +64,21 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data }) => {
         return null;
     };
 
+    // Responsive configuration
+    const getResponsiveConfig = () => {
+        const isSmallScreen = windowWidth < 768;
+        return {
+            fontSize: isSmallScreen ? 10 : 12,
+            angle: isSmallScreen ? -45 : -30,
+            height: isSmallScreen ? 90 : 80,
+            margin: isSmallScreen 
+                ? { top: 20, right: 10, left: 10, bottom: 5 }
+                : { top: 20, right: 30, left: 20, bottom: 5 }
+        };
+    };
+
+    const config = getResponsiveConfig();
+
     return (
         <ChartContainer theme={theme}>
             <ChartTitle theme={theme}>
@@ -61,19 +86,20 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data }) => {
             </ChartTitle>
             
             <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <BarChart data={data} margin={config.margin}>
                     <CartesianGrid strokeDasharray="3 3" stroke={theme.colors.border} />
                     <XAxis 
                         dataKey="week" 
                         stroke={theme.colors.text.secondary}
-                        fontSize={12}
-                        angle={-45}
+                        fontSize={config.fontSize}
+                        angle={config.angle}
                         textAnchor="end"
-                        height={80}
+                        height={config.height}
+                        interval={0}
                     />
                     <YAxis 
                         stroke={theme.colors.text.secondary}
-                        fontSize={12}
+                        fontSize={config.fontSize}
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar 

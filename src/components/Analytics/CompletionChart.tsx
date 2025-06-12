@@ -109,15 +109,20 @@ export const CompletionChart: React.FC<CompletionChartProps> = ({ data }) => {
     // Prepare data for chart - show different amounts based on screen size
     const getChartData = () => {
         const isSmallScreen = window.innerWidth < 768;
-        const dataPoints = isSmallScreen ? 14 : 30; // 2 weeks on mobile, 1 month on desktop
+        const isTinyScreen = window.innerWidth < 480;
+        const dataPoints = isTinyScreen ? 10 : isSmallScreen ? 14 : 30;
         
-        return data.slice(-dataPoints).map(day => ({
-            ...day,
-            date: new Date(day.date).toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric'
-            })
-        }));
+        return data.slice(-dataPoints).map(day => {
+            const date = new Date(day.date);
+            return {
+                ...day,
+                date: isTinyScreen 
+                    ? date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' }) // "12/25"
+                    : isSmallScreen 
+                    ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) // "Dec 25"
+                    : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) // "Dec 25"
+            };
+        });
     };
 
     const [chartData, setChartData] = React.useState(getChartData());
@@ -175,15 +180,17 @@ export const CompletionChart: React.FC<CompletionChartProps> = ({ data }) => {
     const getChartMargin = () => {
         const isSmallScreen = window.innerWidth < 768;
         return isSmallScreen 
-            ? { top: 5, right: 10, left: 0, bottom: 5 }
+            ? { top: 5, right: 10, left: 0, bottom: 25 }
             : { top: 5, right: 30, left: 20, bottom: 5 };
     };
 
     const getAxisConfig = () => {
         const isSmallScreen = window.innerWidth < 768;
+        const isTinyScreen = window.innerWidth < 480;
         return {
-            fontSize: isSmallScreen ? 10 : 12,
-            interval: isSmallScreen ? 1 : 0, // Show every other label on mobile
+            fontSize: isTinyScreen ? 8 : isSmallScreen ? 9 : 12,
+            interval: isTinyScreen ? 2 : isSmallScreen ? 1 : 0, // Show fewer labels on smaller screens
+            angle: isSmallScreen ? -45 : 0, // Rotate labels on mobile
         };
     };
 
@@ -209,9 +216,12 @@ export const CompletionChart: React.FC<CompletionChartProps> = ({ data }) => {
                             stroke={theme.colors.text.secondary}
                             fontSize={getAxisConfig().fontSize}
                             interval={getAxisConfig().interval}
+                            angle={getAxisConfig().angle}
+                            textAnchor={getAxisConfig().angle ? "end" : "middle"}
                             tick={{ fontSize: getAxisConfig().fontSize }}
                             axisLine={{ stroke: theme.colors.border }}
                             tickLine={{ stroke: theme.colors.border }}
+                            height={window.innerWidth < 768 ? 50 : 30}
                         />
                         <YAxis 
                             stroke={theme.colors.text.secondary}
